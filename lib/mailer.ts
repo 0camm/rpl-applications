@@ -1,36 +1,23 @@
 import nodemailer from 'nodemailer'
 
-let transporter: ReturnType<typeof nodemailer.createTransport> | null = null
-
-function getTransporter() {
-  if (transporter) return transporter
-
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env
+export async function sendVerificationEmail(to: string, code: string, contextLabel: string) {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-    throw new Error(
-      'SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM in your .env file.'
-    )
+    throw new Error('SMTP is not configured.')
   }
 
-  transporter = nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: Number(SMTP_PORT ?? 587),
-    secure: Number(SMTP_PORT ?? 587) === 465, // true for port 465, false for 587/25
+    secure: Number(SMTP_PORT ?? 587) === 465,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
   })
 
-  return transporter
-}
-
-export async function sendVerificationEmail(to: string, code: string, contextLabel: string) {
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER
-  const t = getTransporter()
-
-  await t.sendMail({
-    from: `"Revolutionary Pro League" <${from}>`,
+  await transporter.sendMail({
+    from: `"Revolutionary Pro League" <${SMTP_FROM || SMTP_USER}>`,
     to,
     subject: `Your verification code: ${code}`,
-    text: `Your verification code for the ${contextLabel} application is: ${code}\n\nThis code expires in 10 minutes. If you didn't request this, you can ignore this email.`,
+    text: `Your verification code for the ${contextLabel} application is: ${code}\n\nThis code expires in 10 minutes.`,
     html: `
       <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
         <h2 style="margin: 0 0 8px; color: #111;">Verify your email</h2>
