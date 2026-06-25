@@ -93,10 +93,24 @@ model Answer {
 }
 
 model FranchiseConfig {
-  id            String   @id @default(cuid())
+  id            String   @id @default("singleton")
   isOpen        Boolean  @default(false)
   closedMessage String   @default("Franchise applications are currently closed.")
   updatedAt     DateTime @updatedAt
+}
+
+model VerificationCode {
+  id           String          @id @default(cuid())
+  email        String
+  code         String
+  type         ApplicationType
+  departmentId String?
+  attempts     Int             @default(0)
+  verified     Boolean         @default(false)
+  expiresAt    DateTime
+  createdAt    DateTime        @default(now())
+
+  @@index([email, type, departmentId])
 }
 
 model RateLimit {

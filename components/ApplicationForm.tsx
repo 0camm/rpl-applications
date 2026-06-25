@@ -47,8 +47,15 @@ const STATUS_LABELS: Record<AppStatus, { label: string; color: string; icon: str
 
 export default function ApplicationForm({ type, departmentId, title, description, questions, submitEndpoint, icon, accentColor }: Props) {
   const [email, setEmail] = useState('')
-  const [emailChecked, setEmailChecked] = useState(false)
   const [emailError, setEmailError] = useState('')
+  const [sendingCode, setSendingCode] = useState(false)
+
+  const [step, setStep] = useState<'email' | 'code' | 'form'>('email')
+  const [code, setCode] = useState('')
+  const [codeError, setCodeError] = useState('')
+  const [verifying, setVerifying] = useState(false)
+  const [verificationToken, setVerificationToken] = useState('')
+
   const [checkingStatus, setCheckingStatus] = useState(false)
   const [statusResult, setStatusResult] = useState<StatusResult | null>(null)
 
@@ -64,28 +71,72 @@ export default function ApplicationForm({ type, departmentId, title, description
     setTimeout(() => setToast(null), 5000)
   }
 
-  const checkEmail = async () => {
+  // Step 1 -> 2: send the 6-digit code to the entered email
+  const sendCode = async () => {
     const trimmed = email.trim()
     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
       setEmailError('Enter a valid email address')
       return
     }
     setEmailError('')
-    setCheckingStatus(true)
+    setSendingCode(true)
     try {
-      const res = await fetch('/api/applications/status', {
+      const res = await fetch('/api/applications/verify/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: trimmed, departmentId, type }),
       })
-      const data: StatusResult = await res.json()
-      setStatusResult(data)
-      setEmailChecked(true)
-    } catch {
-      showToast('Could not check application status. Please try again.')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Could not send verification code')
+      setStep('code')
+      showToast('Verification code sent — check your inbox.', 'success')
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Could not send verification code. Please try again.')
     } finally {
+      setSendingCode(false)
+    }
+  }
+
+  // Step 2 -> 3: confirm the code, then check application status with the resulting token
+  const confirmCode = async () => {
+    const trimmed = code.trim()
+    if (!/^\d{6}$/.test(trimmed)) {
+      setCodeError('Enter the 6-digit code from your email')
+      return
+    }
+    setCodeError('')
+    setVerifying(true)
+    try {
+      const res = await fetch('/api/applications/verify/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), departmentId, type, code: trimmed }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Incorrect code')
+
+      setVerificationToken(data.token)
+      setCheckingStatus(true)
+      const statusRes = await fetch('/api/applications/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), departmentId, type, token: data.token }),
+      })
+      const statusData: StatusResult = await statusRes.json()
+      setStatusResult(statusData)
+      setStep('form')
+    } catch (err: unknown) {
+      setCodeError(err instanceof Error ? err.message : 'Incorrect code. Please try again.')
+    } finally {
+      setVerifying(false)
       setCheckingStatus(false)
     }
+  }
+
+  const resendCode = async () => {
+    setCode('')
+    setCodeError('')
+    await sendCode()
   }
 
   const setAnswer = (qid: string, val: string | string[]) => {
@@ -127,6 +178,7 @@ export default function ApplicationForm({ type, departmentId, title, description
       type,
       departmentId: departmentId ?? null,
       email: email.trim().toLowerCase(),
+      verificationToken,
       ...core,
       answers: questions.map(q => ({
         questionId: q.id,
@@ -170,12 +222,17 @@ export default function ApplicationForm({ type, departmentId, title, description
   }
 
   // Step 1: Email gate
-  if (!emailChecked) {
+  if (step === 'email') {
     return (
       <>
         <FormStyles accentColor={accentColor} />
         <NavBar />
         <div className="form-page">
+          {toast && (
+            <div className={`toast-bar ${toast.type}`}>
+              {toast.type === 'error' ? '⚠ ' : '✓ '}{toast.msg}
+            </div>
+          )}
           <div className="form-hero">
             <span className="form-icon">{icon}</span>
             <div>
@@ -186,9 +243,9 @@ export default function ApplicationForm({ type, departmentId, title, description
           </div>
           <div className="email-gate">
             <div className="email-gate-card">
-              <div className="email-gate-title">Enter Your Email</div>
+              <div className="email-gate-title">Verify Your Email</div>
               <p className="email-gate-desc">
-                We use your email to track your application status and prevent duplicate submissions. It is never shared publicly.
+                We'll send a 6-digit code to confirm this email is yours, track your application status, and prevent duplicate submissions. It's never shared publicly.
               </p>
               <div className="field" style={{ width: '100%' }}>
                 <label className="flabel">Email Address <span className="qreq">*</span></label>
@@ -198,14 +255,75 @@ export default function ApplicationForm({ type, departmentId, title, description
                   placeholder="you@example.com"
                   value={email}
                   onChange={e => { setEmail(e.target.value); setEmailError('') }}
-                  onKeyDown={e => e.key === 'Enter' && checkEmail()}
+                  onKeyDown={e => e.key === 'Enter' && sendCode()}
                   autoFocus
                 />
                 {emailError && <div className="field-error">⚠ {emailError}</div>}
               </div>
-              <button className="btn-submit" onClick={checkEmail} disabled={checkingStatus} style={{ marginTop: 8 }}>
-                {checkingStatus ? <><span className="spinner-sm" /> Checking…</> : 'Continue →'}
+              <button className="btn-submit" onClick={sendCode} disabled={sendingCode} style={{ marginTop: 8 }}>
+                {sendingCode ? <><span className="spinner-sm" /> Sending code…</> : 'Send Verification Code →'}
               </button>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  // Step 2: Enter the 6-digit code sent to their email
+  if (step === 'code') {
+    return (
+      <>
+        <FormStyles accentColor={accentColor} />
+        <NavBar />
+        <div className="form-page">
+          {toast && (
+            <div className={`toast-bar ${toast.type}`}>
+              {toast.type === 'error' ? '⚠ ' : '✓ '}{toast.msg}
+            </div>
+          )}
+          <div className="form-hero">
+            <span className="form-icon">{icon}</span>
+            <div>
+              <div className="form-eyebrow">{type === 'FRANCHISE' ? 'Franchise Owner Application' : 'Staff Application'}</div>
+              <h1 className="form-title">{title}</h1>
+            </div>
+          </div>
+          <div className="email-gate">
+            <div className="email-gate-card">
+              <div className="email-gate-title">Enter Your Code</div>
+              <p className="email-gate-desc">
+                We sent a 6-digit code to <strong style={{ color: '#fff' }}>{email.trim()}</strong>. Enter it below to continue. The code expires in 10 minutes.
+              </p>
+              <div className="field" style={{ width: '100%' }}>
+                <label className="flabel">Verification Code <span className="qreq">*</span></label>
+                <input
+                  className={`finput${codeError ? ' err' : ''}`}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="123456"
+                  maxLength={6}
+                  value={code}
+                  onChange={e => { setCode(e.target.value.replace(/\D/g, '')); setCodeError('') }}
+                  onKeyDown={e => e.key === 'Enter' && confirmCode()}
+                  style={{ letterSpacing: '0.3em', fontSize: 18, textAlign: 'center' }}
+                  autoFocus
+                />
+                {codeError && <div className="field-error">⚠ {codeError}</div>}
+              </div>
+              <button className="btn-submit" onClick={confirmCode} disabled={verifying || checkingStatus} style={{ marginTop: 8 }}>
+                {verifying || checkingStatus ? <><span className="spinner-sm" /> Verifying…</> : 'Verify & Continue →'}
+              </button>
+              <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
+                <button type="button" className="btn-back" style={{ background: 'var(--s3)', cursor: 'pointer', border: '1px solid var(--b)', fontSize: 12 }}
+                  onClick={resendCode} disabled={sendingCode}>
+                  {sendingCode ? 'Resending…' : 'Resend Code'}
+                </button>
+                <button type="button" className="btn-back" style={{ background: 'var(--s3)', cursor: 'pointer', border: '1px solid var(--b)', fontSize: 12 }}
+                  onClick={() => { setStep('email'); setCode(''); setCodeError('') }}>
+                  Use Different Email
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -244,7 +362,7 @@ export default function ApplicationForm({ type, departmentId, title, description
               <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
                 <Link href="/" className="btn-back">← All Applications</Link>
                 <button className="btn-back" style={{ background: 'var(--s3)', cursor: 'pointer', border: '1px solid var(--b)' }}
-                  onClick={() => { setEmailChecked(false); setStatusResult(null); setEmail('') }}>
+                  onClick={() => { setStep('email'); setStatusResult(null); setEmail(''); setCode(''); setVerificationToken('') }}>
                   Use Different Email
                 </button>
               </div>

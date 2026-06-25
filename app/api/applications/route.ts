@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendApplicationToDiscord } from '@/lib/discord'
 import { checkRateLimit, getClientIP, hashIP } from '@/lib/rateLimit'
+import { verifyVerificationToken } from '@/lib/verificationToken'
 import { z } from 'zod'
 
 const AnswerSchema = z.object({
@@ -15,6 +16,7 @@ const SubmissionSchema = z.object({
   departmentId: z.string().nullable().optional(),
   fullName: z.string().min(2).max(80),
   email: z.string().email(),
+  verificationToken: z.string(),
   discordUsername: z.string().min(2).max(40),
   discordId: z.string().regex(/^\d{17,20}$/, 'Invalid Discord ID'),
   age: z.string().min(1).max(3),
@@ -50,6 +52,13 @@ export async function POST(req: NextRequest) {
 
   const data = parsed.data
   const emailNorm = data.email.toLowerCase().trim()
+
+  if (!verifyVerificationToken(data.verificationToken, emailNorm, data.type, data.departmentId ?? null)) {
+    return NextResponse.json(
+      { error: 'Email verification expired or invalid. Please verify your email again.' },
+      { status: 401 }
+    )
+  }
 
   if (data.type === 'DEPARTMENT' && data.departmentId) {
     const dept = await prisma.department.findUnique({ where: { id: data.departmentId } })
