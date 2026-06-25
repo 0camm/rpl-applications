@@ -4,8 +4,7 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Never redirect login or auth routes
-  if (pathname === '/admin/login' || pathname.startsWith('/api/auth')) {
+  if (pathname.startsWith('/admin/login') || pathname.startsWith('/api/auth')) {
     return NextResponse.next()
   }
 
@@ -21,6 +20,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Exclude /admin/login explicitly from the matcher
-  matcher: ['/admin/((?!login).*)'],
+  matcher: ['/admin/:path*'],
 }
