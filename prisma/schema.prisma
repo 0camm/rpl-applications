@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Department {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  slug         String        @unique
+  description  String
+  icon         String        @default("📋")
+  isOpen       Boolean       @default(false)
+  closedMessage String       @default("Applications are currently closed.")
+  sortOrder    Int           @default(0)
+  questions    Question[]
+  applications Application[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Question {
+  id            String       @id @default(cuid())
+  departmentId  String?
+  isFranchise   Boolean      @default(false)
+  label         String
+  placeholder   String       @default("")
+  type          QuestionType @default(LONG_TEXT)
+  options       String[]     @default([])
+  required      Boolean      @default(true)
+  charLimit     Int?
+  sortOrder     Int          @default(0)
+  department    Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+enum QuestionType {
+  SHORT_TEXT
+  LONG_TEXT
+  MULTIPLE_CHOICE
+  DROPDOWN
+  CHECKBOX
+}
+
+model Application {
+  id           String            @id @default(cuid())
+  type         ApplicationType
+  departmentId String?
+  department   Department?       @relation(fields: [departmentId], references: [id])
+  fullName     String
+  discordUsername String
+  discordId    String
+  age          String
+  timezone     String
+  status       ApplicationStatus @default(PENDING)
+  answers      Answer[]
+  ipHash       String?
+  submittedAt  DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+enum ApplicationType {
+  DEPARTMENT
+  FRANCHISE
+}
+
+enum ApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  ACCEPTED
+  DENIED
+}
+
+model Answer {
+  id            String      @id @default(cuid())
+  applicationId String
+  questionId    String
+  questionLabel String
+  value         String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model FranchiseConfig {
+  id            String   @id @default(cuid())
+  isOpen        Boolean  @default(false)
+  closedMessage String   @default("Franchise applications are currently closed.")
+  updatedAt     DateTime @updatedAt
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  ipHash    String
+  action    String
+  count     Int      @default(1)
+  window    DateTime
+  @@unique([ipHash, action])
+}

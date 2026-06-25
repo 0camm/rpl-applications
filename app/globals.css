@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --red: #e8001d;
+  --red-a: .08;
+  --red-dim: rgba(232,0,29,.08);
+  --red-mid: rgba(232,0,29,.18);
+  --red-edge: rgba(232,0,29,.4);
+  --bg: #08080f;
+  --s1: #0e0e1a;
+  --s2: #131322;
+  --s3: #191929;
+  --s4: #202034;
+  --b: rgba(255,255,255,.06);
+  --b2: rgba(255,255,255,.03);
+  --mu: #52526a;
+  --mu2: #3c3c55;
+  --tx: #e2e2f2;
+  --tx2: #9898b8;
+  --gr: #18d464;
+  --gr-d: rgba(24,212,100,.09);
+  --am: #f5a623;
+  --am-d: rgba(245,166,35,.09);
+  --bl: #5b9cf6;
+  --bl-d: rgba(91,156,246,.09);
+  --win: #3de87a;
+  --lose: #f06070;
+  --green: #22c55e;
+  --gold: #c9a84c;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--tx);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--mu2); border-radius: 4px; }
+
+/* Typography */
+.bebas { font-family: 'Bebas Neue', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Utility */
+.red { color: var(--red); }
+.muted { color: var(--mu); }
+.win { color: var(--win); }
+.lose { color: var(--lose); }
+.amber { color: var(--am); }
+.blue { color: var(--bl); }
+
+/* Animations */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes livePulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(24,212,100,.4); }
+  50% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(24,212,100,0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(24,212,100,0); }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+.animate-fadeUp { animation: fadeUp .4s ease forwards; }
+.animate-fadeIn { animation: fadeIn .3s ease forwards; }
+
+/* Skeleton loader */
+.skeleton {
+  background: linear-gradient(90deg, var(--s2) 25%, var(--s3) 50%, var(--s2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
