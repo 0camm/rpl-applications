@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
 
   // Rate limit code requests per-IP so the email can't be used to spam someone's inbox
   const ip = getClientIP(req)
-  const ipHash = hashIP(ip)
-  const { allowed } = await checkRateLimit(ipHash, 'request_verification', 5, 15 * 60 * 1000)
+  const emailKey = hashIP(email + type + (departmentId ?? ''))
+  const { allowed } = await checkRateLimit(emailKey, 'request_verification', 5, 15 * 60 * 1000)
   if (!allowed) {
     return NextResponse.json(
       { error: 'Too many code requests. Please wait a few minutes and try again.' },
