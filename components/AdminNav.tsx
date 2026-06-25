@@ -59,7 +59,7 @@ export default function AdminNav() {
       <nav className={`admin-nav${menuOpen ? ' open' : ''}`}>
         <div className="admin-nav-header">
           <div className="admin-nav-brand">RPL <em>Admin</em></div>
-          <div className="admin-nav-pill">Season 11 Control Panel</div>
+          <div className="admin-nav-pill">Control Panel</div>
         </div>
         <div className="admin-nav-body">
           {NAV_ITEMS.map(item => (
