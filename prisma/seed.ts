@@ -66,7 +66,7 @@ const departments = [
       { label: 'What type of media content can you produce?', type: QuestionType.CHECKBOX, options: ['Video editing', 'Photo editing', 'Social media posts', 'Highlight reels', 'Thumbnails'], required: true, sortOrder: 0 },
       { label: 'Link examples of your previous media work', type: QuestionType.SHORT_TEXT, required: true, sortOrder: 1 },
       { label: 'What tools do you use for video/photo editing?', type: QuestionType.SHORT_TEXT, required: true, sortOrder: 2 },
-      { label: 'How would you grow RPL's media presence?', type: QuestionType.LONG_TEXT, required: true, sortOrder: 3, charLimit: 1000 },
+      { label: 'How would you grow RPL media presence?', type: QuestionType.LONG_TEXT, required: true, sortOrder: 3, charLimit: 1000 },
     ],
   },
   {
