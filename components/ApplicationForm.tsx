@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 interface Question {
@@ -26,9 +26,32 @@ interface Props {
   accentColor: string
 }
 
+type AppStatus = 'PENDING' | 'UNDER_REVIEW' | 'ACCEPTED' | 'DENIED'
+
+interface StatusResult {
+  hasApplication: boolean
+  canResubmit?: boolean
+  status?: AppStatus
+  submittedAt?: string
+  departmentName?: string
+}
+
 const TIMEZONES = ['EST (UTC-5)', 'CST (UTC-6)', 'MST (UTC-7)', 'PST (UTC-8)', 'BST (UTC+1)', 'CET (UTC+1)', 'EET (UTC+2)', 'GMT (UTC+0)', 'AEST (UTC+10)', 'JST (UTC+9)', 'IST (UTC+5:30)', 'Other']
 
+const STATUS_LABELS: Record<AppStatus, { label: string; color: string; icon: string; desc: string }> = {
+  PENDING:      { label: 'Pending Review',  color: '#f5a623', icon: '⏳', desc: 'Your application is in the queue and has not been reviewed yet.' },
+  UNDER_REVIEW: { label: 'Under Review',    color: '#5b9cf6', icon: '🔍', desc: 'Our team is currently reviewing your application.' },
+  ACCEPTED:     { label: 'Accepted',        color: '#18d464', icon: '✅', desc: 'Your application was accepted! You may submit a new one if you wish.' },
+  DENIED:       { label: 'Denied',          color: '#f06070', icon: '❌', desc: 'Your application was not accepted. You are welcome to apply again.' },
+}
+
 export default function ApplicationForm({ type, departmentId, title, description, questions, submitEndpoint, icon, accentColor }: Props) {
+  const [email, setEmail] = useState('')
+  const [emailChecked, setEmailChecked] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [checkingStatus, setCheckingStatus] = useState(false)
+  const [statusResult, setStatusResult] = useState<StatusResult | null>(null)
+
   const [core, setCore] = useState({ fullName: '', discordUsername: '', discordId: '', age: '', timezone: '' })
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -39,6 +62,30 @@ export default function ApplicationForm({ type, departmentId, title, description
   const showToast = (msg: string, type: 'error' | 'success' = 'error') => {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 5000)
+  }
+
+  const checkEmail = async () => {
+    const trimmed = email.trim()
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailError('Enter a valid email address')
+      return
+    }
+    setEmailError('')
+    setCheckingStatus(true)
+    try {
+      const res = await fetch('/api/applications/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed, departmentId, type }),
+      })
+      const data: StatusResult = await res.json()
+      setStatusResult(data)
+      setEmailChecked(true)
+    } catch {
+      showToast('Could not check application status. Please try again.')
+    } finally {
+      setCheckingStatus(false)
+    }
   }
 
   const setAnswer = (qid: string, val: string | string[]) => {
@@ -56,7 +103,6 @@ export default function ApplicationForm({ type, departmentId, title, description
     const ageNum = parseInt(core.age, 10)
     if (isNaN(ageNum) || ageNum < 10 || ageNum > 99) errs.age = 'Enter a valid age'
     if (!core.timezone) errs.timezone = 'Select your timezone'
-
     for (const q of questions) {
       if (!q.required) continue
       const val = answers[q.id]
@@ -77,10 +123,10 @@ export default function ApplicationForm({ type, departmentId, title, description
     e.preventDefault()
     if (!validate()) { showToast('Please fix the errors below'); return }
     setSubmitting(true)
-
     const payload = {
       type,
       departmentId: departmentId ?? null,
+      email: email.trim().toLowerCase(),
       ...core,
       answers: questions.map(q => ({
         questionId: q.id,
@@ -88,7 +134,6 @@ export default function ApplicationForm({ type, departmentId, title, description
         value: Array.isArray(answers[q.id]) ? (answers[q.id] as string[]).join(', ') : (answers[q.id] as string ?? ''),
       })),
     }
-
     try {
       const res = await fetch(submitEndpoint, {
         method: 'POST',
@@ -115,7 +160,7 @@ export default function ApplicationForm({ type, departmentId, title, description
             <div className="success-icon">✓</div>
             <h1 className="success-title">Application Submitted</h1>
             <p className="success-sub">
-              Your application for <strong style={{ color: '#fff' }}>{title}</strong> has been received. Our team will review it and update the status shortly — check back or watch Discord for updates.
+              Your application for <strong style={{ color: '#fff' }}>{title}</strong> has been received. Check back using your email to track your status.
             </p>
             <Link href="/" className="btn-back">← Back to Applications</Link>
           </div>
@@ -124,6 +169,93 @@ export default function ApplicationForm({ type, departmentId, title, description
     )
   }
 
+  // Step 1: Email gate
+  if (!emailChecked) {
+    return (
+      <>
+        <FormStyles accentColor={accentColor} />
+        <NavBar />
+        <div className="form-page">
+          <div className="form-hero">
+            <span className="form-icon">{icon}</span>
+            <div>
+              <div className="form-eyebrow">{type === 'FRANCHISE' ? 'Franchise Owner Application' : 'Staff Application'}</div>
+              <h1 className="form-title">{title}</h1>
+              <p className="form-desc">{description}</p>
+            </div>
+          </div>
+          <div className="email-gate">
+            <div className="email-gate-card">
+              <div className="email-gate-title">Enter Your Email</div>
+              <p className="email-gate-desc">
+                We use your email to track your application status and prevent duplicate submissions. It is never shared publicly.
+              </p>
+              <div className="field" style={{ width: '100%' }}>
+                <label className="flabel">Email Address <span className="qreq">*</span></label>
+                <input
+                  className={`finput${emailError ? ' err' : ''}`}
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); setEmailError('') }}
+                  onKeyDown={e => e.key === 'Enter' && checkEmail()}
+                  autoFocus
+                />
+                {emailError && <div className="field-error">⚠ {emailError}</div>}
+              </div>
+              <button className="btn-submit" onClick={checkEmail} disabled={checkingStatus} style={{ marginTop: 8 }}>
+                {checkingStatus ? <><span className="spinner-sm" /> Checking…</> : 'Continue →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  // Step 2: Show status block if they have an existing application
+  if (statusResult?.hasApplication && !statusResult.canResubmit) {
+    const st = statusResult.status!
+    const info = STATUS_LABELS[st]
+    return (
+      <>
+        <FormStyles accentColor={accentColor} />
+        <NavBar />
+        <div className="form-page">
+          <div className="form-hero">
+            <span className="form-icon">{icon}</span>
+            <div>
+              <div className="form-eyebrow">{type === 'FRANCHISE' ? 'Franchise Owner Application' : 'Staff Application'}</div>
+              <h1 className="form-title">{title}</h1>
+            </div>
+          </div>
+          <div className="email-gate">
+            <div className="email-gate-card status-card">
+              <div className="status-icon">{info.icon}</div>
+              <div className="status-badge" style={{ background: `${info.color}18`, border: `1px solid ${info.color}44`, color: info.color }}>
+                {info.label}
+              </div>
+              <p className="email-gate-desc">{info.desc}</p>
+              {statusResult.submittedAt && (
+                <div className="status-meta">
+                  Submitted {new Date(statusResult.submittedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+                <Link href="/" className="btn-back">← All Applications</Link>
+                <button className="btn-back" style={{ background: 'var(--s3)', cursor: 'pointer', border: '1px solid var(--b)' }}
+                  onClick={() => { setEmailChecked(false); setStatusResult(null); setEmail('') }}>
+                  Use Different Email
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  // Step 3: Show form (new applicant OR canResubmit)
   return (
     <>
       <FormStyles accentColor={accentColor} />
@@ -134,12 +266,15 @@ export default function ApplicationForm({ type, departmentId, title, description
             {toast.type === 'error' ? '⚠ ' : '✓ '}{toast.msg}
           </div>
         )}
+        {statusResult?.canResubmit && (
+          <div className="resubmit-banner">
+            Your previous application was <strong style={{ color: statusResult.status === 'ACCEPTED' ? 'var(--gr)' : 'var(--lose)' }}>{statusResult.status?.toLowerCase()}</strong>. You may submit a new application below.
+          </div>
+        )}
         <div className="form-hero">
           <span className="form-icon">{icon}</span>
           <div>
-            <div className="form-eyebrow">
-              {type === 'FRANCHISE' ? 'Franchise Owner Application' : 'Staff Application'}
-            </div>
+            <div className="form-eyebrow">{type === 'FRANCHISE' ? 'Franchise Owner Application' : 'Staff Application'}</div>
             <h1 className="form-title">{title}</h1>
             <p className="form-desc">{description}</p>
           </div>
@@ -153,48 +288,27 @@ export default function ApplicationForm({ type, departmentId, title, description
             </legend>
             <div className="field-grid">
               <Field label="Full Name" error={errors.fullName} required>
-                <input
-                  className={`finput${errors.fullName ? ' err' : ''}`}
-                  placeholder="Your full name"
-                  value={core.fullName}
-                  onChange={e => { setCore(p => ({ ...p, fullName: e.target.value })); setErrors(p => { const n={...p}; delete n.fullName; return n }) }}
-                  maxLength={80}
-                />
+                <input className={`finput${errors.fullName ? ' err' : ''}`} placeholder="Your full name"
+                  value={core.fullName} onChange={e => { setCore(p => ({ ...p, fullName: e.target.value })); setErrors(p => { const n={...p}; delete n.fullName; return n }) }} maxLength={80} />
+              </Field>
+              <Field label="Email" error={undefined}>
+                <input className="finput" type="email" value={email} disabled style={{ opacity: .6, cursor: 'not-allowed' }} />
               </Field>
               <Field label="Discord Username" error={errors.discordUsername} required hint="e.g. username#0 or username">
-                <input
-                  className={`finput${errors.discordUsername ? ' err' : ''}`}
-                  placeholder="username or username#0"
-                  value={core.discordUsername}
-                  onChange={e => { setCore(p => ({ ...p, discordUsername: e.target.value })); setErrors(p => { const n={...p}; delete n.discordUsername; return n }) }}
-                  maxLength={40}
-                />
+                <input className={`finput${errors.discordUsername ? ' err' : ''}`} placeholder="username or username#0"
+                  value={core.discordUsername} onChange={e => { setCore(p => ({ ...p, discordUsername: e.target.value })); setErrors(p => { const n={...p}; delete n.discordUsername; return n }) }} maxLength={40} />
               </Field>
               <Field label="Discord ID" error={errors.discordId} required hint="17–20 digit user ID">
-                <input
-                  className={`finput${errors.discordId ? ' err' : ''}`}
-                  placeholder="123456789012345678"
-                  value={core.discordId}
-                  onChange={e => { setCore(p => ({ ...p, discordId: e.target.value })); setErrors(p => { const n={...p}; delete n.discordId; return n }) }}
-                  maxLength={20}
-                  inputMode="numeric"
-                />
+                <input className={`finput${errors.discordId ? ' err' : ''}`} placeholder="123456789012345678"
+                  value={core.discordId} onChange={e => { setCore(p => ({ ...p, discordId: e.target.value })); setErrors(p => { const n={...p}; delete n.discordId; return n }) }} maxLength={20} inputMode="numeric" />
               </Field>
               <Field label="Age" error={errors.age} required>
-                <input
-                  className={`finput${errors.age ? ' err' : ''}`}
-                  type="number" placeholder="Your age"
-                  value={core.age}
-                  onChange={e => { setCore(p => ({ ...p, age: e.target.value })); setErrors(p => { const n={...p}; delete n.age; return n }) }}
-                  min={10} max={99}
-                />
+                <input className={`finput${errors.age ? ' err' : ''}`} type="number" placeholder="Your age"
+                  value={core.age} onChange={e => { setCore(p => ({ ...p, age: e.target.value })); setErrors(p => { const n={...p}; delete n.age; return n }) }} min={10} max={99} />
               </Field>
               <Field label="Timezone" error={errors.timezone} required>
-                <select
-                  className={`fselect${errors.timezone ? ' err' : ''}`}
-                  value={core.timezone}
-                  onChange={e => { setCore(p => ({ ...p, timezone: e.target.value })); setErrors(p => { const n={...p}; delete n.timezone; return n }) }}
-                >
+                <select className={`fselect${errors.timezone ? ' err' : ''}`} value={core.timezone}
+                  onChange={e => { setCore(p => ({ ...p, timezone: e.target.value })); setErrors(p => { const n={...p}; delete n.timezone; return n }) }}>
                   <option value="">Select your timezone…</option>
                   {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
                 </select>
@@ -221,11 +335,7 @@ export default function ApplicationForm({ type, departmentId, title, description
               By submitting this application, you confirm that all information provided is accurate. Falsifying information may result in disqualification.
             </p>
             <button type="submit" className="btn-submit" disabled={submitting}>
-              {submitting ? (
-                <><span className="spinner-sm" /> Submitting…</>
-              ) : (
-                'Submit Application →'
-              )}
+              {submitting ? <><span className="spinner-sm" /> Submitting…</> : 'Submit Application →'}
             </button>
           </div>
         </form>
@@ -241,7 +351,6 @@ function QuestionField({ q, index, answer, onChange, error }: {
   error?: string
 }) {
   const charCount = typeof answer === 'string' ? answer.length : 0
-
   return (
     <div className="qfield">
       <div className="qlabel">
@@ -249,74 +358,42 @@ function QuestionField({ q, index, answer, onChange, error }: {
         {q.label}
         {q.required && <span className="qreq">*</span>}
       </div>
-      {(q.type === 'SHORT_TEXT') && (
-        <input
-          className={`finput${error ? ' err' : ''}`}
-          placeholder={q.placeholder || 'Your answer…'}
-          value={(answer as string) ?? ''}
-          onChange={e => onChange(q.id, e.target.value)}
-          maxLength={q.charLimit ?? 500}
-        />
+      {q.type === 'SHORT_TEXT' && (
+        <input className={`finput${error ? ' err' : ''}`} placeholder={q.placeholder || 'Your answer…'}
+          value={(answer as string) ?? ''} onChange={e => onChange(q.id, e.target.value)} maxLength={q.charLimit ?? 500} />
       )}
-      {(q.type === 'LONG_TEXT') && (
+      {q.type === 'LONG_TEXT' && (
         <div className="textarea-wrap">
-          <textarea
-            className={`ftextarea${error ? ' err' : ''}`}
-            placeholder={q.placeholder || 'Your answer…'}
-            rows={4}
-            value={(answer as string) ?? ''}
-            onChange={e => onChange(q.id, e.target.value)}
-            maxLength={q.charLimit ?? 2000}
-          />
-          {q.charLimit && (
-            <div className={`char-count${charCount > q.charLimit * 0.9 ? ' warn' : ''}`}>
-              {charCount}/{q.charLimit}
-            </div>
-          )}
+          <textarea className={`ftextarea${error ? ' err' : ''}`} placeholder={q.placeholder || 'Your answer…'}
+            rows={4} value={(answer as string) ?? ''} onChange={e => onChange(q.id, e.target.value)} maxLength={q.charLimit ?? 2000} />
+          {q.charLimit && <div className={`char-count${charCount > q.charLimit * 0.9 ? ' warn' : ''}`}>{charCount}/{q.charLimit}</div>}
         </div>
       )}
-      {(q.type === 'DROPDOWN') && (
-        <select
-          className={`fselect${error ? ' err' : ''}`}
-          value={(answer as string) ?? ''}
-          onChange={e => onChange(q.id, e.target.value)}
-        >
+      {q.type === 'DROPDOWN' && (
+        <select className={`fselect${error ? ' err' : ''}`} value={(answer as string) ?? ''} onChange={e => onChange(q.id, e.target.value)}>
           <option value="">Select an option…</option>
           {q.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>
       )}
-      {(q.type === 'MULTIPLE_CHOICE') && (
+      {q.type === 'MULTIPLE_CHOICE' && (
         <div className="radio-group">
           {q.options.map(opt => (
             <label key={opt} className="radio-label">
-              <input
-                type="radio" name={q.id} value={opt}
-                checked={(answer as string) === opt}
-                onChange={() => onChange(q.id, opt)}
-                className="radio-input"
-              />
-              <span className="radio-custom" />
-              {opt}
+              <input type="radio" name={q.id} value={opt} checked={(answer as string) === opt} onChange={() => onChange(q.id, opt)} className="radio-input" />
+              <span className="radio-custom" />{opt}
             </label>
           ))}
         </div>
       )}
-      {(q.type === 'CHECKBOX') && (
+      {q.type === 'CHECKBOX' && (
         <div className="checkbox-group">
           {q.options.map(opt => {
             const checked = Array.isArray(answer) && answer.includes(opt)
             return (
               <label key={opt} className="check-label">
-                <input
-                  type="checkbox" value={opt} checked={checked}
-                  onChange={e => {
-                    const prev = Array.isArray(answer) ? answer : []
-                    onChange(q.id, e.target.checked ? [...prev, opt] : prev.filter(v => v !== opt))
-                  }}
-                  className="check-input"
-                />
-                <span className="check-custom">{checked && '✓'}</span>
-                {opt}
+                <input type="checkbox" value={opt} checked={checked}
+                  onChange={e => { const prev = Array.isArray(answer) ? answer : []; onChange(q.id, e.target.checked ? [...prev, opt] : prev.filter(v => v !== opt)) }} className="check-input" />
+                <span className="check-custom">{checked && '✓'}</span>{opt}
               </label>
             )
           })}
@@ -343,12 +420,10 @@ function Field({ label, children, error, required, hint }: {
 
 function NavBar() {
   return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, height: 56,
+    <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, height: 56,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 28px', background: 'rgba(8,8,15,.95)', backdropFilter: 'blur(24px)',
-      borderBottom: '1px solid rgba(255,255,255,.04)',
-    }}>
+      borderBottom: '1px solid rgba(255,255,255,.04)' }}>
       <Link href="/" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 17, letterSpacing: '.08em', color: '#fff', textDecoration: 'none' }}>
         Revolutionary <span style={{ color: 'var(--red)' }}>Pro League</span>
       </Link>
@@ -369,6 +444,8 @@ function FormStyles({ accentColor }: { accentColor: string }) {
         box-shadow: 0 10px 36px rgba(0,0,0,.6); white-space: nowrap;
         border-left: 3px solid var(--red); animation: fadeUp .2s ease; }
       .toast-bar.success { border-left-color: var(--gr); }
+      .resubmit-banner { background: rgba(24,212,100,.07); border-bottom: 1px solid rgba(24,212,100,.15);
+        padding: 12px 28px; font-size: 13px; color: var(--tx2); }
       .form-hero { padding: 40px 28px 32px; display: flex; align-items: flex-start; gap: 20px;
         border-bottom: 1px solid var(--b2); position: relative; }
       .form-hero::after { content: ''; position: absolute; bottom: 0; left: 0; width: 160px; height: 2px;
@@ -381,6 +458,19 @@ function FormStyles({ accentColor }: { accentColor: string }) {
       .form-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 5vw, 44px);
         letter-spacing: .03em; color: #fff; line-height: 1; margin-bottom: 8px; }
       .form-desc { font-size: 13px; color: var(--mu); font-weight: 300; line-height: 1.65; max-width: 480px; }
+      .email-gate { display: flex; align-items: flex-start; justify-content: center; padding: 60px 28px; }
+      .email-gate-card { background: var(--s1); border: 1px solid var(--b); border-radius: 14px;
+        padding: 32px 28px; width: 100%; max-width: 420px; display: flex; flex-direction: column;
+        gap: 14px; position: relative; overflow: hidden; }
+      .email-gate-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, ${accentColor}, transparent 60%); }
+      .email-gate-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: .04em; color: #fff; }
+      .email-gate-desc { font-size: 13px; color: var(--mu); line-height: 1.65; font-weight: 300; }
+      .status-card { align-items: center; text-align: center; }
+      .status-icon { font-size: 48px; }
+      .status-badge { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+        padding: 5px 14px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; }
+      .status-meta { font-size: 11px; color: var(--mu); font-family: 'JetBrains Mono', monospace; }
       .form-wrap { max-width: 740px; margin: 0 auto; padding: 32px 28px 80px; display: flex; flex-direction: column; gap: 28px; }
       .fset { border: 1px solid var(--b); border-radius: 12px; overflow: hidden; padding: 0; }
       .fset-legend { display: flex; align-items: center; gap: 10px; background: var(--s2);
@@ -450,6 +540,8 @@ function FormStyles({ accentColor }: { accentColor: string }) {
         font-size: 13px; font-weight: 600; color: #fff; background: var(--s2); border: 1px solid var(--b);
         border-radius: 8px; padding: 11px 22px; text-decoration: none; transition: all .15s; }
       .btn-back:hover { background: var(--s3); border-color: rgba(255,255,255,.12); }
+      @keyframes spin { to { transform: rotate(360deg) } }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
       @media (max-width: 640px) {
         .form-hero { padding: 28px 20px 24px; flex-direction: column; gap: 12px; }
         .form-wrap { padding: 24px 16px 60px; }
@@ -458,6 +550,7 @@ function FormStyles({ accentColor }: { accentColor: string }) {
         .form-submit-area { align-items: stretch; }
         .form-disclaimer { text-align: left; max-width: none; }
         .btn-submit { width: 100%; }
+        .email-gate { padding: 40px 16px; }
       }
     `}</style>
   )

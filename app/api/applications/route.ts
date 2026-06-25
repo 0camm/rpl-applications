@@ -14,6 +14,7 @@ const SubmissionSchema = z.object({
   type: z.enum(['DEPARTMENT', 'FRANCHISE']),
   departmentId: z.string().nullable().optional(),
   fullName: z.string().min(2).max(80),
+  email: z.string().email(),
   discordUsername: z.string().min(2).max(40),
   discordId: z.string().regex(/^\d{17,20}$/, 'Invalid Discord ID'),
   age: z.string().min(1).max(3),
@@ -26,7 +27,6 @@ function sanitize(str: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  // Rate limiting: 3 submissions per hour per IP
   const ip = getClientIP(req)
   const ipHash = hashIP(ip)
   const { allowed } = await checkRateLimit(ipHash, 'submit_application', 3, 60 * 60 * 1000)
@@ -39,65 +39,54 @@ export async function POST(req: NextRequest) {
   }
 
   let body: unknown
-  try {
-    body = await req.json()
-  } catch {
+  try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
   const parsed = SubmissionSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.errors[0]?.message ?? 'Invalid submission' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: parsed.error.errors[0]?.message ?? 'Invalid submission' }, { status: 400 })
   }
 
   const data = parsed.data
+  const emailNorm = data.email.toLowerCase().trim()
 
-  // Verify department is open
   if (data.type === 'DEPARTMENT' && data.departmentId) {
     const dept = await prisma.department.findUnique({ where: { id: data.departmentId } })
-    if (!dept?.isOpen) {
-      return NextResponse.json({ error: 'This department is not accepting applications' }, { status: 403 })
-    }
+    if (!dept?.isOpen) return NextResponse.json({ error: 'This department is not accepting applications' }, { status: 403 })
+
+    // Block duplicate active applications
+    const active = await prisma.application.findFirst({
+      where: { email: emailNorm, type: 'DEPARTMENT', departmentId: data.departmentId, status: { in: ['PENDING', 'UNDER_REVIEW'] } },
+    })
+    if (active) return NextResponse.json({ error: 'You already have an active application for this department.' }, { status: 409 })
   }
+
   if (data.type === 'FRANCHISE') {
     const config = await prisma.franchiseConfig.findUnique({ where: { id: 'singleton' } })
-    if (!config?.isOpen) {
-      return NextResponse.json({ error: 'Franchise applications are not open' }, { status: 403 })
-    }
+    if (!config?.isOpen) return NextResponse.json({ error: 'Franchise applications are not open' }, { status: 403 })
+
+    const active = await prisma.application.findFirst({
+      where: { email: emailNorm, type: 'FRANCHISE', status: { in: ['PENDING', 'UNDER_REVIEW'] } },
+    })
+    if (active) return NextResponse.json({ error: 'You already have an active franchise application.' }, { status: 409 })
   }
 
-  // Server-side field validation
   const ageNum = parseInt(data.age, 10)
-  if (isNaN(ageNum) || ageNum < 10 || ageNum > 99) {
-    return NextResponse.json({ error: 'Invalid age' }, { status: 400 })
-  }
+  if (isNaN(ageNum) || ageNum < 10 || ageNum > 99) return NextResponse.json({ error: 'Invalid age' }, { status: 400 })
 
-  // Verify required questions are answered
   let expectedQuestions: { id: string; required: boolean; charLimit: number | null }[] = []
   if (data.type === 'DEPARTMENT' && data.departmentId) {
-    expectedQuestions = await prisma.question.findMany({
-      where: { departmentId: data.departmentId },
-      select: { id: true, required: true, charLimit: true },
-    })
+    expectedQuestions = await prisma.question.findMany({ where: { departmentId: data.departmentId }, select: { id: true, required: true, charLimit: true } })
   } else if (data.type === 'FRANCHISE') {
-    expectedQuestions = await prisma.question.findMany({
-      where: { isFranchise: true },
-      select: { id: true, required: true, charLimit: true },
-    })
+    expectedQuestions = await prisma.question.findMany({ where: { isFranchise: true }, select: { id: true, required: true, charLimit: true } })
   }
 
   const answersMap = new Map(data.answers.map(a => [a.questionId, a.value]))
   for (const q of expectedQuestions) {
     const val = answersMap.get(q.id) ?? ''
-    if (q.required && !val.trim()) {
-      return NextResponse.json({ error: 'All required fields must be completed' }, { status: 400 })
-    }
-    if (q.charLimit && val.length > q.charLimit) {
-      return NextResponse.json({ error: `Response too long for a question (max ${q.charLimit} chars)` }, { status: 400 })
-    }
+    if (q.required && !val.trim()) return NextResponse.json({ error: 'All required fields must be completed' }, { status: 400 })
+    if (q.charLimit && val.length > q.charLimit) return NextResponse.json({ error: `Response too long (max ${q.charLimit} chars)` }, { status: 400 })
   }
 
   const application = await prisma.application.create({
@@ -105,6 +94,7 @@ export async function POST(req: NextRequest) {
       type: data.type,
       departmentId: data.departmentId ?? null,
       fullName: sanitize(data.fullName),
+      email: emailNorm,
       discordUsername: sanitize(data.discordUsername),
       discordId: data.discordId,
       age: data.age,
@@ -121,7 +111,6 @@ export async function POST(req: NextRequest) {
     include: { department: true, answers: true },
   })
 
-  // Send to Discord (non-blocking)
   sendApplicationToDiscord({
     id: application.id,
     type: application.type,

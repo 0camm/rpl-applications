@@ -15,34 +15,34 @@ model Admin {
 }
 
 model Department {
-  id           String        @id @default(cuid())
-  name         String        @unique
-  slug         String        @unique
-  description  String
-  icon         String        @default("📋")
-  isOpen       Boolean       @default(false)
-  closedMessage String       @default("Applications are currently closed.")
-  sortOrder    Int           @default(0)
-  questions    Question[]
-  applications Application[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  name          String        @unique
+  slug          String        @unique
+  description   String
+  icon          String        @default("📋")
+  isOpen        Boolean       @default(false)
+  closedMessage String        @default("Applications are currently closed.")
+  sortOrder     Int           @default(0)
+  questions     Question[]
+  applications  Application[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Question {
-  id            String       @id @default(cuid())
-  departmentId  String?
-  isFranchise   Boolean      @default(false)
-  label         String
-  placeholder   String       @default("")
-  type          QuestionType @default(LONG_TEXT)
-  options       String[]     @default([])
-  required      Boolean      @default(true)
-  charLimit     Int?
-  sortOrder     Int          @default(0)
-  department    Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id           String       @id @default(cuid())
+  departmentId String?
+  isFranchise  Boolean      @default(false)
+  label        String
+  placeholder  String       @default("")
+  type         QuestionType @default(LONG_TEXT)
+  options      String[]     @default([])
+  required     Boolean      @default(true)
+  charLimit    Int?
+  sortOrder    Int          @default(0)
+  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 enum QuestionType {
@@ -54,20 +54,21 @@ enum QuestionType {
 }
 
 model Application {
-  id           String            @id @default(cuid())
-  type         ApplicationType
-  departmentId String?
-  department   Department?       @relation(fields: [departmentId], references: [id])
-  fullName     String
+  id              String            @id @default(cuid())
+  type            ApplicationType
+  departmentId    String?
+  department      Department?       @relation(fields: [departmentId], references: [id])
+  fullName        String
+  email           String
   discordUsername String
-  discordId    String
-  age          String
-  timezone     String
-  status       ApplicationStatus @default(PENDING)
-  answers      Answer[]
-  ipHash       String?
-  submittedAt  DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  discordId       String
+  age             String
+  timezone        String
+  status          ApplicationStatus @default(PENDING)
+  answers         Answer[]
+  ipHash          String?
+  submittedAt     DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 }
 
 enum ApplicationType {
@@ -99,10 +100,10 @@ model FranchiseConfig {
 }
 
 model RateLimit {
-  id        String   @id @default(cuid())
-  ipHash    String
-  action    String
-  count     Int      @default(1)
-  window    DateTime
+  id      String   @id @default(cuid())
+  ipHash  String
+  action  String
+  count   Int      @default(1)
+  window  DateTime
   @@unique([ipHash, action])
 }
