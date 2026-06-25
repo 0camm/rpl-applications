@@ -107,7 +107,7 @@ export default function FranchiseConfigClient({ config: init, questions: initQ }
       {toast && <div className="toast-fixed">✓ {toast}</div>}
       <div className="fc-page">
         <div className="fc-title">Franchise Config</div>
-        <div className="fc-sub">Control franchise owner applications for Season 11</div>
+        <div className="fc-sub">Control franchise owner applications</div>
 
         <div className="card">
           <div className="card-hd">Application Status</div>

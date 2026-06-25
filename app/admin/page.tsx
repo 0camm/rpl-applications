@@ -95,7 +95,7 @@ export default async function AdminDashboard() {
 
       <div className="dash-header">
         <div className="dash-title">Dashboard</div>
-        <div className="dash-sub">Season 11 Application Control Panel</div>
+        <div className="dash-sub">Application Control Panel</div>
       </div>
 
       <div className="stat-grid">
