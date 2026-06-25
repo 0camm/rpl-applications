@@ -62,7 +62,7 @@ export default function LoginPage() {
         <div className="login-card">
           <div className="login-header">
             <div className="login-brand">RPL <em>Admin</em></div>
-            <div className="login-sub">SECURE ACCESS — SEASON 11</div>
+            <div className="login-sub">SECURE ACCESS — SEASON 12</div>
           </div>
           <form className="login-body" onSubmit={handleSubmit}>
             {error && <div className="login-error">⚠ {error}</div>}
@@ -70,17 +70,20 @@ export default function LoginPage() {
               <label className="login-label">Username</label>
               <input
                 className={`login-input${error ? ' err' : ''}`}
-                type="text" autoComplete="username"
-                value={username} onChange={e => setUsername(e.target.value)}
-                placeholder="admin"
+                type="text"
+                autoComplete="username"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
               />
             </div>
             <div className="login-field">
               <label className="login-label">Password</label>
               <input
                 className={`login-input${error ? ' err' : ''}`}
-                type="password" autoComplete="current-password"
-                value={password} onChange={e => setPassword(e.target.value)}
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
               />
             </div>
             <button type="submit" className="login-btn" disabled={loading}>
