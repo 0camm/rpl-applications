@@ -169,7 +169,7 @@ export default async function HomePage() {
 
       <div className="page">
         <div className="hero">
-          <div className="hero-eyebrow">Season 11 Applications</div>
+          <div className="hero-eyebrow">Season 12 Applications</div>
           <h1>Join the<br /><em>Revolution</em></h1>
           <p className="hero-sub">Apply to become part of the staff team or own a franchise in the most competitive Roblox basketball league.</p>
         </div>
@@ -225,7 +225,7 @@ export default async function HomePage() {
             <div className="franchise-inner">
               <div className="franchise-icon">🏆</div>
               <div className="franchise-body">
-                <div className="franchise-tag">Season 11 Opportunity</div>
+                <div className="franchise-tag">Season 12 Opportunity</div>
                 <div className="franchise-title">Become a Franchise Owner</div>
                 <p className="franchise-desc">
                   Own and manage one of 30 NBA franchises in the RPL. Build your roster, compete for the championship, and lead your team through a full season of elite Roblox basketball.

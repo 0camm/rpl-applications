@@ -33,7 +33,7 @@ export default async function ApplyPage({ params }: Props) {
       <ApplicationForm
         type="FRANCHISE"
         title="Franchise Owner Application"
-        description="Apply to own and manage an NBA franchise in RPL Season 11."
+        description="Apply to own and manage an NBA franchise in RPL Season 12."
         questions={questions}
         submitEndpoint="/api/applications"
         icon="🏆"

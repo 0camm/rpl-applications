@@ -94,25 +94,29 @@ const franchiseQuestions = [
 ]
 
 async function main() {
+  const adminUsername = process.env.ADMIN_USERNAME
+  const adminPassword = process.env.ADMIN_PASSWORD
+
+  if (!adminUsername || !adminPassword) {
+    throw new Error('ADMIN_USERNAME and ADMIN_PASSWORD must be set in environment variables. No defaults allowed.')
+  }
+
   console.log('Seeding database...')
 
-  // Admin
-  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'rpl-admin-2026', 12)
+  const hash = await bcrypt.hash(adminPassword, 12)
   await prisma.admin.upsert({
-    where: { username: 'admin' },
-    update: {},
-    create: { username: 'admin', password: hash },
+    where: { username: adminUsername },
+    update: { password: hash },
+    create: { username: adminUsername, password: hash },
   })
-  console.log('✓ Admin user created (username: admin)')
+  console.log('✓ Admin user created')
 
-  // Franchise config
   await prisma.franchiseConfig.upsert({
     where: { id: 'singleton' },
     update: {},
     create: { id: 'singleton', isOpen: false },
   })
 
-  // Departments
   for (const dept of departments) {
     const { questions, ...deptData } = dept
     const created = await prisma.department.upsert({
@@ -120,7 +124,6 @@ async function main() {
       update: { ...deptData },
       create: { ...deptData },
     })
-    // Delete old questions and recreate
     await prisma.question.deleteMany({ where: { departmentId: created.id } })
     for (const q of questions) {
       await prisma.question.create({ data: { ...q, departmentId: created.id } })
@@ -128,7 +131,6 @@ async function main() {
     console.log(`✓ ${deptData.name}`)
   }
 
-  // Franchise questions
   await prisma.question.deleteMany({ where: { isFranchise: true } })
   for (const q of franchiseQuestions) {
     await prisma.question.create({ data: q })
