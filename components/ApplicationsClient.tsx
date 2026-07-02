@@ -4,8 +4,8 @@ import { useState, useMemo, useCallback } from 'react'
 
 interface Answer { id: string; questionLabel: string; value: string }
 interface Application {
-  id: string; type: string; status: string; fullName: string;
-  discordUsername: string; discordId: string; age: string; timezone: string;
+  id: string; type: string; status: string; robloxUsername: string;
+  discordUsername: string;
   submittedAt: string;
   department: { name: string; slug: string; icon: string } | null
   answers: Answer[]
@@ -36,9 +36,8 @@ export default function ApplicationsClient({ applications: initial, departments 
     if (search) {
       const q = search.toLowerCase()
       list = list.filter(a =>
-        a.fullName.toLowerCase().includes(q) ||
+        a.robloxUsername.toLowerCase().includes(q) ||
         a.discordUsername.toLowerCase().includes(q) ||
-        a.discordId.includes(q) ||
         (a.department?.name ?? 'franchise').toLowerCase().includes(q)
       )
     }
@@ -88,10 +87,10 @@ export default function ApplicationsClient({ applications: initial, departments 
 
   const exportCSV = () => {
     const rows = [
-      ['ID', 'Type', 'Department', 'Full Name', 'Discord', 'Discord ID', 'Age', 'Timezone', 'Status', 'Submitted'],
+      ['ID', 'Type', 'Department', 'Roblox Username', 'Discord Username', 'Status', 'Submitted'],
       ...filtered.map(a => [
         a.id, a.type, a.department?.name ?? 'Franchise Owner',
-        a.fullName, a.discordUsername, a.discordId, a.age, a.timezone,
+        a.robloxUsername, a.discordUsername,
         a.status, new Date(a.submittedAt).toISOString(),
       ]),
     ]
@@ -241,8 +240,8 @@ export default function ApplicationsClient({ applications: initial, departments 
           return (
             <div key={app.id} className="app-row" onClick={() => setSelected(app)}>
               <div>
-                <div className="app-name">{app.fullName}</div>
-                <div className="app-meta">{app.discordUsername} · {app.discordId}</div>
+                <div className="app-name">{app.robloxUsername}</div>
+                <div className="app-meta">{app.discordUsername}</div>
               </div>
               <div className="app-dept">
                 {app.department?.icon ?? '🏆'}
@@ -270,7 +269,7 @@ export default function ApplicationsClient({ applications: initial, departments 
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <div className="modal-title">{selected.fullName}</div>
+                <div className="modal-title">{selected.robloxUsername}</div>
                 <div className="modal-meta">
                   {selected.department?.name ?? 'Franchise Owner'} ·{' '}
                   Submitted {new Date(selected.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -281,10 +280,8 @@ export default function ApplicationsClient({ applications: initial, departments 
             <div className="modal-body">
               <div className="info-grid">
                 {[
+                  { label: 'Roblox Username', val: selected.robloxUsername },
                   { label: 'Discord Username', val: selected.discordUsername },
-                  { label: 'Discord ID', val: selected.discordId },
-                  { label: 'Age', val: selected.age },
-                  { label: 'Timezone', val: selected.timezone },
                   { label: 'Type', val: selected.type },
                   { label: 'Status', val: selected.status.replace('_', ' ') },
                 ].map(({ label, val }) => (

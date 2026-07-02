@@ -18,11 +18,8 @@ export function formatApplicationForCSV(app: {
   id: string
   type: string
   department?: { name: string } | null
-  fullName: string
+  robloxUsername: string
   discordUsername: string
-  discordId: string
-  age: string
-  timezone: string
   status: string
   submittedAt: Date
   answers: { questionLabel: string; value: string }[]
@@ -31,11 +28,8 @@ export function formatApplicationForCSV(app: {
     ID: app.id,
     Type: app.type,
     Department: app.department?.name ?? (app.type === 'FRANCHISE' ? 'Franchise Owner' : '—'),
-    'Full Name': app.fullName,
+    'Roblox Username': app.robloxUsername,
     'Discord Username': app.discordUsername,
-    'Discord ID': app.discordId,
-    Age: app.age,
-    Timezone: app.timezone,
     Status: app.status,
     'Submitted At': app.submittedAt.toISOString(),
   }

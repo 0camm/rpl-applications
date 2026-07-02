@@ -14,13 +14,10 @@ const AnswerSchema = z.object({
 const SubmissionSchema = z.object({
   type: z.enum(['DEPARTMENT', 'FRANCHISE']),
   departmentId: z.string().nullable().optional(),
-  fullName: z.string().min(2).max(80),
   email: z.string().email(),
   verificationToken: z.string(),
+  robloxUsername: z.string().min(2).max(40),
   discordUsername: z.string().min(2).max(40),
-  discordId: z.string().regex(/^\d{17,20}$/, 'Invalid Discord ID'),
-  age: z.string().min(1).max(3),
-  timezone: z.string().min(1),
   answers: z.array(AnswerSchema),
 })
 
@@ -81,9 +78,6 @@ export async function POST(req: NextRequest) {
     if (active) return NextResponse.json({ error: 'You already have an active franchise application.' }, { status: 409 })
   }
 
-  const ageNum = parseInt(data.age, 10)
-  if (isNaN(ageNum) || ageNum < 10 || ageNum > 99) return NextResponse.json({ error: 'Invalid age' }, { status: 400 })
-
   let expectedQuestions: { id: string; required: boolean; charLimit: number | null }[] = []
   if (data.type === 'DEPARTMENT' && data.departmentId) {
     expectedQuestions = await prisma.question.findMany({ where: { departmentId: data.departmentId }, select: { id: true, required: true, charLimit: true } })
@@ -102,12 +96,9 @@ export async function POST(req: NextRequest) {
     data: {
       type: data.type,
       departmentId: data.departmentId ?? null,
-      fullName: sanitize(data.fullName),
+      robloxUsername: sanitize(data.robloxUsername),
       email: emailNorm,
       discordUsername: sanitize(data.discordUsername),
-      discordId: data.discordId,
-      age: data.age,
-      timezone: data.timezone,
       ipHash,
       answers: {
         create: data.answers.map(a => ({
@@ -124,11 +115,8 @@ export async function POST(req: NextRequest) {
     id: application.id,
     type: application.type,
     departmentName: application.department?.name,
-    fullName: application.fullName,
+    robloxUsername: application.robloxUsername,
     discordUsername: application.discordUsername,
-    discordId: application.discordId,
-    age: application.age,
-    timezone: application.timezone,
     answers: application.answers,
     submittedAt: application.submittedAt,
   })

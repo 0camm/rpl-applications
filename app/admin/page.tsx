@@ -171,7 +171,7 @@ export default async function AdminDashboard() {
                 <div key={app.id} className="recent-row">
                   <span style={{ fontSize: 18 }}>{app.department?.icon ?? '🏆'}</span>
                   <div style={{ flex: 1 }}>
-                    <div className="recent-name">{app.fullName}</div>
+                    <div className="recent-name">{app.robloxUsername}</div>
                     <div className="recent-meta">
                       {app.discordUsername} · {app.department?.name ?? 'Franchise Owner'} ·{' '}
                       {new Date(app.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
