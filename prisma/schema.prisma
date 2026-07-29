@@ -58,12 +58,9 @@ model Application {
   type            ApplicationType
   departmentId    String?
   department      Department?       @relation(fields: [departmentId], references: [id])
-  fullName        String
+  robloxUsername  String
   email           String
   discordUsername String
-  discordId       String
-  age             String
-  timezone        String
   status          ApplicationStatus @default(PENDING)
   answers         Answer[]
   ipHash          String?

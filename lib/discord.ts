@@ -2,11 +2,8 @@ interface ApplicationData {
   id: string
   type: string
   departmentName?: string
-  fullName: string
+  robloxUsername: string
   discordUsername: string
-  discordId: string
-  age: string
-  timezone: string
   answers: { questionLabel: string; value: string }[]
   submittedAt: Date
 }
@@ -36,11 +33,8 @@ export async function sendApplicationToDiscord(data: ApplicationData) {
     : '🏆'
 
   const fields = [
-    { name: 'Full Name', value: data.fullName, inline: true },
-    { name: 'Discord', value: `${data.discordUsername}`, inline: true },
-    { name: 'Discord ID', value: data.discordId, inline: true },
-    { name: 'Age', value: data.age, inline: true },
-    { name: 'Timezone', value: data.timezone, inline: true },
+    { name: 'Roblox Username', value: data.robloxUsername, inline: true },
+    { name: 'Discord Username', value: data.discordUsername, inline: true },
     { name: 'Status', value: '🟡 Pending', inline: true },
     ...data.answers.slice(0, 12).map((a) => ({
       name: a.questionLabel.length > 50 ? a.questionLabel.slice(0, 47) + '...' : a.questionLabel,
@@ -76,38 +70,4 @@ export async function sendApplicationToDiscord(data: ApplicationData) {
   } catch (err) {
     console.error('Discord webhook failed:', err)
   }
-}
-
-export async function sendStatusUpdateToDiscord(
-  applicationId: string,
-  applicantName: string,
-  department: string,
-  oldStatus: string,
-  newStatus: string
-) {
-  const url = process.env.DISCORD_WEBHOOK_URL
-  if (!url) return
-
-  const color = STATUS_COLORS[newStatus as keyof typeof STATUS_COLORS] ?? 0x52526a
-  const emoji = { PENDING: '🟡', UNDER_REVIEW: '🔵', ACCEPTED: '✅', DENIED: '❌' }[newStatus] ?? '⚪'
-
-  await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      embeds: [
-        {
-          title: `${emoji} Application Status Updated`,
-          color,
-          fields: [
-            { name: 'Applicant', value: applicantName, inline: true },
-            { name: 'Department', value: department, inline: true },
-            { name: 'Status', value: `${oldStatus} → **${newStatus}**`, inline: false },
-          ],
-          footer: { text: `ID: ${applicationId}` },
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    }),
-  }).catch(console.error)
 }

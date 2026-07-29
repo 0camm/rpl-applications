@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { sendStatusUpdateToDiscord } from '@/lib/discord'
+import { sendApplicationResultEmail } from '@/lib/mailer'
 import { z } from 'zod'
 
 async function requireAuth() {
@@ -26,7 +26,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     where: { id },
     data: { status: parsed.data.status },
   })
-  sendStatusUpdateToDiscord(app.id, app.fullName, app.department?.name ?? 'Franchise Owner', app.status, parsed.data.status)
+
+  // Notify the applicant by email when a final decision is made.
+  if (parsed.data.status === 'ACCEPTED' || parsed.data.status === 'DENIED') {
+    const contextLabel = app.department?.name ?? 'Franchise Owner'
+    try {
+      await sendApplicationResultEmail(app.email, parsed.data.status, contextLabel)
+    } catch (err) {
+      console.error('Failed to send application result email:', err)
+    }
+  }
+
   return NextResponse.json({ success: true, status: updated.status })
 }
 

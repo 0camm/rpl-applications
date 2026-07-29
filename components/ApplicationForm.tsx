@@ -36,12 +36,6 @@ interface StatusResult {
   departmentName?: string
 }
 
-const TIMEZONES = [
-  'EST (UTC-5)', 'CST (UTC-6)', 'MST (UTC-7)', 'PST (UTC-8)',
-  'BST (UTC+1)', 'CET (UTC+1)', 'EET (UTC+2)', 'GMT (UTC+0)',
-  'AEST (UTC+10)', 'JST (UTC+9)', 'IST (UTC+5:30)', 'Other',
-]
-
 const STATUS_LABELS: Record<AppStatus, { label: string; color: string; icon: string; desc: string }> = {
   PENDING:      { label: 'Pending Review',  color: '#f5a623', icon: '⏳', desc: 'Your application is in the queue and has not been reviewed yet.' },
   UNDER_REVIEW: { label: 'Under Review',    color: '#5b9cf6', icon: '🔍', desc: 'Our team is currently reviewing your application.' },
@@ -69,7 +63,7 @@ export default function ApplicationForm({
   const [checkingStatus, setCheckingStatus] = useState(false)
   const [statusResult, setStatusResult]     = useState<StatusResult | null>(null)
 
-  const [core, setCore]       = useState({ fullName: '', discordUsername: '', discordId: '', age: '', timezone: '' })
+  const [core, setCore]       = useState({ robloxUsername: '', discordUsername: '' })
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [errors, setErrors]   = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -209,14 +203,8 @@ export default function ApplicationForm({
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {}
-    if (!core.fullName.trim())        errs.fullName        = 'Full name is required.'
+    if (!core.robloxUsername.trim())  errs.robloxUsername  = 'Roblox username is required.'
     if (!core.discordUsername.trim()) errs.discordUsername = 'Discord username is required.'
-    if (!core.discordId.trim())       errs.discordId       = 'Discord ID is required.'
-    if (!/^\d{17,20}$/.test(core.discordId.trim())) errs.discordId = 'Discord ID must be 17–20 digits.'
-    if (!core.age.trim())             errs.age             = 'Age is required.'
-    const ageNum = parseInt(core.age, 10)
-    if (isNaN(ageNum) || ageNum < 10 || ageNum > 99) errs.age = 'Enter a valid age.'
-    if (!core.timezone)               errs.timezone        = 'Select your timezone.'
 
     for (const q of questions) {
       if (!q.required) continue
@@ -532,13 +520,23 @@ export default function ApplicationForm({
               Basic Information
             </legend>
             <div className="field-grid">
-              <Field label="Full Name" error={errors.fullName} required>
+              <Field label="Roblox Username" error={errors.robloxUsername} required hint="Not your Display Name">
                 <input
-                  className={`finput${errors.fullName ? ' err' : ''}`}
-                  placeholder="Your full name"
-                  value={core.fullName}
-                  onChange={e => { setCore(p => ({ ...p, fullName: e.target.value })); setErrors(p => { const n = { ...p }; delete n.fullName; return n }) }}
-                  maxLength={80}
+                  className={`finput${errors.robloxUsername ? ' err' : ''}`}
+                  placeholder="Your Roblox username"
+                  value={core.robloxUsername}
+                  onChange={e => { setCore(p => ({ ...p, robloxUsername: e.target.value })); setErrors(p => { const n = { ...p }; delete n.robloxUsername; return n }) }}
+                  maxLength={40}
+                />
+              </Field>
+
+              <Field label="Discord Username" error={errors.discordUsername} required hint="Not your Display Name">
+                <input
+                  className={`finput${errors.discordUsername ? ' err' : ''}`}
+                  placeholder="Your Discord username"
+                  value={core.discordUsername}
+                  onChange={e => { setCore(p => ({ ...p, discordUsername: e.target.value })); setErrors(p => { const n = { ...p }; delete n.discordUsername; return n }) }}
+                  maxLength={40}
                 />
               </Field>
 
@@ -550,50 +548,6 @@ export default function ApplicationForm({
                   disabled
                   style={{ opacity: 0.6, cursor: 'not-allowed' }}
                 />
-              </Field>
-
-              <Field label="Discord Username" error={errors.discordUsername} required hint="e.g. username or username#0">
-                <input
-                  className={`finput${errors.discordUsername ? ' err' : ''}`}
-                  placeholder="username or username#0"
-                  value={core.discordUsername}
-                  onChange={e => { setCore(p => ({ ...p, discordUsername: e.target.value })); setErrors(p => { const n = { ...p }; delete n.discordUsername; return n }) }}
-                  maxLength={40}
-                />
-              </Field>
-
-              <Field label="Discord ID" error={errors.discordId} required hint="17–20 digit user ID">
-                <input
-                  className={`finput${errors.discordId ? ' err' : ''}`}
-                  placeholder="123456789012345678"
-                  value={core.discordId}
-                  onChange={e => { setCore(p => ({ ...p, discordId: e.target.value })); setErrors(p => { const n = { ...p }; delete n.discordId; return n }) }}
-                  maxLength={20}
-                  inputMode="numeric"
-                />
-              </Field>
-
-              <Field label="Age" error={errors.age} required>
-                <input
-                  className={`finput${errors.age ? ' err' : ''}`}
-                  type="number"
-                  placeholder="Your age"
-                  value={core.age}
-                  onChange={e => { setCore(p => ({ ...p, age: e.target.value })); setErrors(p => { const n = { ...p }; delete n.age; return n }) }}
-                  min={10}
-                  max={99}
-                />
-              </Field>
-
-              <Field label="Timezone" error={errors.timezone} required>
-                <select
-                  className={`fselect${errors.timezone ? ' err' : ''}`}
-                  value={core.timezone}
-                  onChange={e => { setCore(p => ({ ...p, timezone: e.target.value })); setErrors(p => { const n = { ...p }; delete n.timezone; return n }) }}
-                >
-                  <option value="">Select your timezone…</option>
-                  {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
-                </select>
               </Field>
             </div>
           </fieldset>
