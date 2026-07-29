@@ -4,8 +4,8 @@ import { useState, useMemo, useCallback } from 'react'
 
 interface Answer { id: string; questionLabel: string; value: string }
 interface Application {
-  id: string; type: string; status: string; fullName: string;
-  discordUsername: string; discordId: string; age: string; timezone: string;
+  id: string; type: string; status: string; robloxUsername: string;
+  discordUsername: string;
   submittedAt: string;
   department: { name: string; slug: string; icon: string } | null
   answers: Answer[]
@@ -26,6 +26,9 @@ export default function ApplicationsClient({ applications: initial, departments 
   const [selected, setSelected] = useState<Application | null>(null)
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
   const [loadingId, setLoadingId] = useState<string | null>(null)
+  const [deletingAll, setDeletingAll] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+  const [showDeleteAll, setShowDeleteAll] = useState(false)
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type }); setTimeout(() => setToast(null), 4000)
@@ -36,9 +39,8 @@ export default function ApplicationsClient({ applications: initial, departments 
     if (search) {
       const q = search.toLowerCase()
       list = list.filter(a =>
-        a.fullName.toLowerCase().includes(q) ||
+        a.robloxUsername.toLowerCase().includes(q) ||
         a.discordUsername.toLowerCase().includes(q) ||
-        a.discordId.includes(q) ||
         (a.department?.name ?? 'franchise').toLowerCase().includes(q)
       )
     }
@@ -86,12 +88,29 @@ export default function ApplicationsClient({ applications: initial, departments 
     }
   }, [selected])
 
+  const deleteAllApps = useCallback(async () => {
+    setDeletingAll(true)
+    try {
+      const res = await fetch('/api/admin/applications?confirm=true', { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      setApps([])
+      setSelected(null)
+      setShowDeleteAll(false)
+      setConfirmText('')
+      showToast('All applications deleted')
+    } catch {
+      showToast('Failed to delete all applications', 'error')
+    } finally {
+      setDeletingAll(false)
+    }
+  }, [])
+
   const exportCSV = () => {
     const rows = [
-      ['ID', 'Type', 'Department', 'Full Name', 'Discord', 'Discord ID', 'Age', 'Timezone', 'Status', 'Submitted'],
+      ['ID', 'Type', 'Department', 'Roblox Username', 'Discord Username', 'Status', 'Submitted'],
       ...filtered.map(a => [
         a.id, a.type, a.department?.name ?? 'Franchise Owner',
-        a.fullName, a.discordUsername, a.discordId, a.age, a.timezone,
+        a.robloxUsername, a.discordUsername,
         a.status, new Date(a.submittedAt).toISOString(),
       ]),
     ]
@@ -199,7 +218,17 @@ export default function ApplicationsClient({ applications: initial, departments 
           <div className="apps-title">Applications</div>
           <div className="apps-count">{filtered.length} of {initial.length} shown</div>
         </div>
-        <button className="export-btn" onClick={exportCSV}>↓ Export CSV</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="export-btn" onClick={exportCSV}>↓ Export CSV</button>
+          <button
+            className="export-btn"
+            style={{ color: 'var(--red)', borderColor: 'rgba(232,0,29,.3)' }}
+            onClick={() => setShowDeleteAll(true)}
+            disabled={apps.length === 0}
+          >
+            🗑 Delete All
+          </button>
+        </div>
       </div>
 
       <div className="filters">
@@ -241,8 +270,8 @@ export default function ApplicationsClient({ applications: initial, departments 
           return (
             <div key={app.id} className="app-row" onClick={() => setSelected(app)}>
               <div>
-                <div className="app-name">{app.fullName}</div>
-                <div className="app-meta">{app.discordUsername} · {app.discordId}</div>
+                <div className="app-name">{app.robloxUsername}</div>
+                <div className="app-meta">{app.discordUsername}</div>
               </div>
               <div className="app-dept">
                 {app.department?.icon ?? '🏆'}
@@ -265,12 +294,49 @@ export default function ApplicationsClient({ applications: initial, departments 
         })}
       </div>
 
+      {showDeleteAll && (
+        <div className="modal-bg" onClick={() => { setShowDeleteAll(false); setConfirmText('') }}>
+          <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <div className="modal-title">Delete All Applications</div>
+                <div className="modal-meta">This will permanently delete all {apps.length} applications. This cannot be undone.</div>
+              </div>
+              <button className="modal-close" onClick={() => { setShowDeleteAll(false); setConfirmText('') }}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ fontSize: 13, color: 'var(--tx2)', marginBottom: 12 }}>
+                Type <strong style={{ color: '#fff' }}>DELETE</strong> to confirm.
+              </div>
+              <input
+                className="fc"
+                style={{ width: '100%' }}
+                value={confirmText}
+                onChange={e => setConfirmText(e.target.value)}
+                placeholder="DELETE"
+                autoFocus
+              />
+            </div>
+            <div className="modal-footer">
+              <button
+                className="del-btn"
+                disabled={confirmText !== 'DELETE' || deletingAll}
+                onClick={deleteAllApps}
+              >
+                {deletingAll ? 'Deleting…' : 'Delete All Applications'}
+              </button>
+              <button className="action-btn" onClick={() => { setShowDeleteAll(false); setConfirmText('') }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {selected && (
         <div className="modal-bg" onClick={() => setSelected(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <div className="modal-title">{selected.fullName}</div>
+                <div className="modal-title">{selected.robloxUsername}</div>
                 <div className="modal-meta">
                   {selected.department?.name ?? 'Franchise Owner'} ·{' '}
                   Submitted {new Date(selected.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -281,10 +347,8 @@ export default function ApplicationsClient({ applications: initial, departments 
             <div className="modal-body">
               <div className="info-grid">
                 {[
+                  { label: 'Roblox Username', val: selected.robloxUsername },
                   { label: 'Discord Username', val: selected.discordUsername },
-                  { label: 'Discord ID', val: selected.discordId },
-                  { label: 'Age', val: selected.age },
-                  { label: 'Timezone', val: selected.timezone },
                   { label: 'Type', val: selected.type },
                   { label: 'Status', val: selected.status.replace('_', ' ') },
                 ].map(({ label, val }) => (
