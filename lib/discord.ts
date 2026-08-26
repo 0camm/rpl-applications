@@ -54,7 +54,7 @@ export async function sendApplicationToDiscord(data: ApplicationData) {
         color: STATUS_COLORS.PENDING,
         fields,
         footer: {
-          text: `Application ID: ${data.id} • RPL Season 11`,
+          text: `Application ID: ${data.id} • RPL Season 14`,
         },
         timestamp: data.submittedAt.toISOString(),
       },

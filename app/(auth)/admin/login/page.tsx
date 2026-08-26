@@ -62,7 +62,7 @@ export default function LoginPage() {
         <div className="login-card">
           <div className="login-header">
             <div className="login-brand">RPL <em>Admin</em></div>
-            <div className="login-sub">SECURE ACCESS — SEASON 12</div>
+            <div className="login-sub">SECURE ACCESS — SEASON 14</div>
           </div>
           <form className="login-body" onSubmit={handleSubmit}>
             {error && <div className="login-error">⚠ {error}</div>}
