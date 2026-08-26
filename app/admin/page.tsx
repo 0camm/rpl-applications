@@ -78,7 +78,7 @@ export default async function AdminDashboard() {
         .dept-name-sm { font-size: 12px; font-weight: 600; color: var(--tx); }
         .dept-open-badge { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
           padding: 2px 6px; border-radius: 4px; }
-        .dept-open-badge.open { background: var(--gr-d); color: var(--gr); border: 1px solid rgba(24,212,100,.2); }
+        .dept-open-badge.open { background: var(--gr-d); color: var(--gr); border: 1px solid rgba(31,224,122,.2); }
         .dept-open-badge.closed { background: var(--s3); color: var(--mu); border: 1px solid var(--b); }
         .dept-count-sm { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; color: var(--tx2); }
         .recent-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--b2); }
