@@ -80,26 +80,26 @@ export default function FranchiseConfigClient({ config: init, questions: initQ }
         .field-lbl { font-size: 11px; font-weight: 600; color: var(--tx2); }
         .field-inp { background: var(--s2); border: 1px solid var(--b); border-radius: 8px; color: var(--tx);
           font-size: 13px; font-family: 'Inter', sans-serif; padding: 9px 12px; outline: none; transition: border-color .15s; width: 100%; }
-        .field-inp:focus { border-color: rgba(201,168,76,.5); }
+        .field-inp:focus { border-color: rgba(245,196,0,.5); }
         .save-btn { background: var(--gold); color: #0a0a12; font-size: 12px; font-weight: 700;
           padding: 9px 20px; border-radius: 7px; border: none; cursor: pointer; transition: all .15s; }
-        .save-btn:hover:not(:disabled) { background: #d4b257; }
+        .save-btn:hover:not(:disabled) { background: #ffd633; }
         .save-btn:disabled { opacity: .6; cursor: not-allowed; }
         .q-card { background: var(--s2); border: 1px solid var(--b); border-radius: 9px; padding: 12px 14px;
           display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; cursor: pointer; transition: border-color .15s; margin-bottom: 8px; }
         .q-card:hover { border-color: rgba(255,255,255,.12); }
-        .q-card.editing { border-color: rgba(201,168,76,.5); }
+        .q-card.editing { border-color: rgba(245,196,0,.5); }
         .q-label { font-size: 13px; color: var(--tx); }
         .q-meta { font-size: 10px; color: var(--mu); margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
         .q-actions { display: flex; gap: 6px; flex-shrink: 0; }
         .q-btn { background: var(--s3); border: 1px solid var(--b); border-radius: 6px; color: var(--mu);
           font-size: 11px; padding: 4px 10px; cursor: pointer; transition: all .13s; }
         .q-btn:hover { background: var(--s4); color: var(--tx); }
-        .q-btn.del:hover { color: var(--red); border-color: rgba(232,0,29,.3); }
+        .q-btn.del:hover { color: var(--red); border-color: rgba(255,18,51,.3); }
         .q-editor { background: var(--s3); border: 1px solid var(--b); border-radius: 10px; padding: 16px; margin-bottom: 8px; }
         .add-q-btn { width: 100%; padding: 10px; background: none; border: 1px dashed var(--b);
           border-radius: 9px; color: var(--mu); font-size: 13px; cursor: pointer; transition: all .15s; }
-        .add-q-btn:hover { border-color: rgba(201,168,76,.4); color: var(--gold); }
+        .add-q-btn:hover { border-color: rgba(245,196,0,.4); color: var(--gold); }
         .toast-fixed { position: fixed; bottom: 20px; right: 20px; background: var(--s3); border: 1px solid var(--b);
           border-left: 3px solid var(--gr); border-radius: 9px; padding: 11px 16px; font-size: 13px; color: #fff; z-index: 9999; }
       `}</style>

@@ -48,12 +48,12 @@ export default function LoginPage() {
           outline: none; transition: border-color .15s; width: 100%; }
         .login-input:focus { border-color: var(--red-edge); }
         .login-input.err { border-color: var(--red); }
-        .login-error { font-size: 12px; color: var(--red); padding: 10px 12px; background: rgba(232,0,29,.08);
-          border: 1px solid rgba(232,0,29,.2); border-radius: 7px; }
+        .login-error { font-size: 12px; color: var(--red); padding: 10px 12px; background: rgba(255,18,51,.08);
+          border: 1px solid rgba(255,18,51,.2); border-radius: 7px; }
         .login-btn { background: var(--red); color: #fff; font-size: 14px; font-weight: 700;
           padding: 13px; border-radius: 8px; border: none; cursor: pointer; width: 100%;
           transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .login-btn:hover:not(:disabled) { background: #c8001a; box-shadow: 0 4px 20px rgba(232,0,29,.4); }
+        .login-btn:hover:not(:disabled) { background: #d40e2a; box-shadow: 0 4px 20px rgba(255,18,51,.4); }
         .login-btn:disabled { opacity: .6; cursor: not-allowed; }
         .login-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3);
           border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }

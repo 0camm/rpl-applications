@@ -158,7 +158,7 @@ export default function ApplicationsClient({ applications: initial, departments 
         .action-btn { background: var(--s3); border: 1px solid var(--b); border-radius: 6px;
           color: var(--mu); font-size: 11px; padding: 4px 10px; cursor: pointer; transition: all .13s; }
         .action-btn:hover { background: var(--s4); color: var(--tx); border-color: rgba(255,255,255,.1); }
-        .action-btn.danger:hover { background: rgba(232,0,29,.12); color: var(--red); border-color: rgba(232,0,29,.3); }
+        .action-btn.danger:hover { background: rgba(255,18,51,.12); color: var(--red); border-color: rgba(255,18,51,.3); }
         .empty-state { padding: 60px 20px; text-align: center; color: var(--mu); font-size: 14px; }
         /* Modal */
         .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(10px);
@@ -195,9 +195,9 @@ export default function ApplicationsClient({ applications: initial, departments 
         .answer-a { font-size: 13px; color: var(--tx); line-height: 1.6; white-space: pre-wrap; }
         .modal-footer { padding: 14px 20px; border-top: 1px solid var(--b2); display: flex; align-items: center;
           justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-        .del-btn { background: none; border: 1px solid rgba(232,0,29,.25); color: var(--red); border-radius: 7px;
+        .del-btn { background: none; border: 1px solid rgba(255,18,51,.25); color: var(--red); border-radius: 7px;
           font-size: 12px; font-weight: 600; padding: 8px 16px; cursor: pointer; transition: all .15s; }
-        .del-btn:hover { background: rgba(232,0,29,.1); }
+        .del-btn:hover { background: rgba(255,18,51,.1); }
         .toast-fixed { position: fixed; bottom: 20px; right: 20px; background: var(--s3); border: 1px solid var(--b);
           border-radius: 9px; padding: 11px 16px; font-size: 13px; color: #fff; z-index: 9999;
           box-shadow: 0 10px 36px rgba(0,0,0,.6); animation: fadeUp .2s ease; }
@@ -222,7 +222,7 @@ export default function ApplicationsClient({ applications: initial, departments 
           <button className="export-btn" onClick={exportCSV}>↓ Export CSV</button>
           <button
             className="export-btn"
-            style={{ color: 'var(--red)', borderColor: 'rgba(232,0,29,.3)' }}
+            style={{ color: 'var(--red)', borderColor: 'rgba(255,18,51,.3)' }}
             onClick={() => setShowDeleteAll(true)}
             disabled={apps.length === 0}
           >

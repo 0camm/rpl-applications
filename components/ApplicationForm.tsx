@@ -37,9 +37,9 @@ interface StatusResult {
 }
 
 const STATUS_LABELS: Record<AppStatus, { label: string; color: string; icon: string; desc: string }> = {
-  PENDING:      { label: 'Pending Review',  color: '#f5a623', icon: '⏳', desc: 'Your application is in the queue and has not been reviewed yet.' },
+  PENDING:      { label: 'Pending Review',  color: '#ffb63d', icon: '⏳', desc: 'Your application is in the queue and has not been reviewed yet.' },
   UNDER_REVIEW: { label: 'Under Review',    color: '#5b9cf6', icon: '🔍', desc: 'Our team is currently reviewing your application.' },
-  ACCEPTED:     { label: 'Accepted',        color: '#18d464', icon: '✅', desc: 'Your application was accepted! You may submit a new one if you wish.' },
+  ACCEPTED:     { label: 'Accepted',        color: '#1fe07a', icon: '✅', desc: 'Your application was accepted! You may submit a new one if you wish.' },
   DENIED:       { label: 'Denied',          color: '#f06070', icon: '❌', desc: 'Your application was not accepted. You are welcome to apply again.' },
 }
 
@@ -729,7 +729,7 @@ function NavBar() {
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, height: 56,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 28px', background: 'rgba(8,8,15,.95)', backdropFilter: 'blur(24px)',
+      padding: '0 28px', background: 'rgba(5,5,8,.95)', backdropFilter: 'blur(24px)',
       borderBottom: '1px solid rgba(255,255,255,.04)',
     }}>
       <Link href="/" style={{
@@ -764,7 +764,7 @@ function FormStyles({ accentColor }: { accentColor: string }) {
       .toast-bar.success { border-left-color: var(--gr); }
 
       .resubmit-banner {
-        background: rgba(24,212,100,.07); border-bottom: 1px solid rgba(24,212,100,.15);
+        background: rgba(31,224,122,.07); border-bottom: 1px solid rgba(31,224,122,.15);
         padding: 12px 28px; font-size: 13px; color: var(--tx2);
       }
 
@@ -779,7 +779,7 @@ function FormStyles({ accentColor }: { accentColor: string }) {
       .form-icon {
         font-size: 40px; flex-shrink: 0; width: 64px; height: 64px; border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
-        background: rgba(232,0,29,.08); border: 1px solid rgba(232,0,29,.18);
+        background: rgba(255,18,51,.08); border: 1px solid rgba(255,18,51,.18);
       }
       .form-eyebrow {
         font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
@@ -824,7 +824,7 @@ function FormStyles({ accentColor }: { accentColor: string }) {
       }
       .fset-num {
         font-family: 'JetBrains Mono', monospace; font-size: 11px; color: ${accentColor};
-        background: rgba(232,0,29,.08); border: 1px solid rgba(232,0,29,.18);
+        background: rgba(255,18,51,.08); border: 1px solid rgba(255,18,51,.18);
         border-radius: 5px; padding: 2px 7px;
       }
 
@@ -864,7 +864,7 @@ function FormStyles({ accentColor }: { accentColor: string }) {
       }
       .qnum {
         font-family: 'JetBrains Mono', monospace; font-size: 10px; color: ${accentColor};
-        background: rgba(232,0,29,.08); border: 1px solid rgba(232,0,29,.16);
+        background: rgba(255,18,51,.08); border: 1px solid rgba(255,18,51,.16);
         border-radius: 4px; padding: 1px 5px; flex-shrink: 0; margin-top: 2px;
       }
 
@@ -904,7 +904,7 @@ function FormStyles({ accentColor }: { accentColor: string }) {
         padding: 14px 32px; border-radius: 9px; border: none; cursor: pointer;
         transition: all .15s; min-width: 200px; justify-content: center;
       }
-      .btn-submit:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(232,0,29,.4); opacity: .9; }
+      .btn-submit:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(255,18,51,.4); opacity: .9; }
       .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
 
       /* Secondary/ghost actions (resend, back) */
@@ -928,7 +928,7 @@ function FormStyles({ accentColor }: { accentColor: string }) {
       }
       .success-icon {
         width: 72px; height: 72px; border-radius: 50%;
-        background: rgba(24,212,100,.1); border: 2px solid rgba(24,212,100,.3);
+        background: rgba(31,224,122,.1); border: 2px solid rgba(31,224,122,.3);
         display: flex; align-items: center; justify-content: center;
         font-size: 32px; color: var(--gr); animation: fadeUp .5s ease;
       }

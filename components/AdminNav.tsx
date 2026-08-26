@@ -30,13 +30,13 @@ export default function AdminNav() {
         .admin-nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 8px;
           font-size: 13px; font-weight: 500; color: var(--mu); text-decoration: none; transition: all .15s; }
         .admin-nav-link:hover { background: var(--s2); color: var(--tx); }
-        .admin-nav-link.active { background: rgba(232,0,29,.1); color: #fff; border: 1px solid rgba(232,0,29,.2); }
+        .admin-nav-link.active { background: rgba(255,18,51,.1); color: #fff; border: 1px solid rgba(255,18,51,.2); }
         .admin-nav-link .nav-icon { font-size: 14px; width: 20px; text-align: center; }
         .admin-nav-footer { padding: 12px 8px; border-top: 1px solid var(--b2); }
         .admin-signout { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 10px;
           border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--mu); background: none;
           border: none; cursor: pointer; transition: all .15s; text-align: left; }
-        .admin-signout:hover { background: rgba(232,0,29,.08); color: var(--red); }
+        .admin-signout:hover { background: rgba(255,18,51,.08); color: var(--red); }
         /* Mobile hamburger */
         .mobile-ham { display: none; position: fixed; top: 12px; left: 12px; z-index: 200;
           background: var(--s2); border: 1px solid var(--b); border-radius: 8px; width: 40px; height: 40px;

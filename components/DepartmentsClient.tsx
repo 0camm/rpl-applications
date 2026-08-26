@@ -89,12 +89,12 @@ export default function DepartmentsClient({ departments: init }: { departments: 
           border-bottom: 1px solid var(--b2); cursor: pointer; transition: background .12s; }
         .dept-list-item:last-child { border-bottom: none; }
         .dept-list-item:hover { background: rgba(255,255,255,.02); }
-        .dept-list-item.active { background: rgba(232,0,29,.07); border-right: 2px solid var(--red); }
+        .dept-list-item.active { background: rgba(255,18,51,.07); border-right: 2px solid var(--red); }
         .dept-list-icon { font-size: 18px; flex-shrink: 0; }
         .dept-list-name { font-size: 13px; font-weight: 600; color: #fff; }
         .dept-list-status { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
           padding: 2px 6px; border-radius: 4px; margin-left: auto; flex-shrink: 0; }
-        .dept-list-status.open { background: var(--gr-d); color: var(--gr); border: 1px solid rgba(24,212,100,.2); }
+        .dept-list-status.open { background: var(--gr-d); color: var(--gr); border: 1px solid rgba(31,224,122,.2); }
         .dept-list-status.closed { background: var(--s3); color: var(--mu); border: 1px solid var(--b); }
         .dept-detail { background: var(--s1); border: 1px solid var(--b); border-radius: 11px; overflow-y: auto; padding: 24px; }
         .dept-detail-empty { display: flex; align-items: center; justify-content: center; height: 100%;
@@ -124,7 +124,7 @@ export default function DepartmentsClient({ departments: init }: { departments: 
         .field-inp:focus { border-color: var(--red-edge); }
         .save-btn { background: var(--red); color: #fff; font-size: 12px; font-weight: 700;
           padding: 9px 20px; border-radius: 7px; border: none; cursor: pointer; transition: all .15s; }
-        .save-btn:hover:not(:disabled) { background: #c8001a; }
+        .save-btn:hover:not(:disabled) { background: #d40e2a; }
         .save-btn:disabled { opacity: .6; cursor: not-allowed; }
         .q-list { display: flex; flex-direction: column; gap: 8px; }
         .q-card { background: var(--s2); border: 1px solid var(--b); border-radius: 9px; padding: 12px 14px;
@@ -137,7 +137,7 @@ export default function DepartmentsClient({ departments: init }: { departments: 
         .q-btn { background: var(--s3); border: 1px solid var(--b); border-radius: 6px; color: var(--mu);
           font-size: 11px; padding: 4px 10px; cursor: pointer; transition: all .13s; }
         .q-btn:hover { background: var(--s4); color: var(--tx); }
-        .q-btn.del:hover { color: var(--red); border-color: rgba(232,0,29,.3); }
+        .q-btn.del:hover { color: var(--red); border-color: rgba(255,18,51,.3); }
         .q-editor { background: var(--s3); border: 1px solid var(--b); border-radius: 10px; padding: 16px; margin-top: 8px; }
         .add-q-btn { width: 100%; padding: 10px; background: none; border: 1px dashed var(--b);
           border-radius: 9px; color: var(--mu); font-size: 13px; cursor: pointer; transition: all .15s; margin-top: 8px; }

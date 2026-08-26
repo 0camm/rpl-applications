@@ -21,7 +21,7 @@ export default async function HomePage() {
           position: fixed; top: 0; left: 0; right: 0; z-index: 200;
           height: 56px; display: flex; align-items: center; justify-content: space-between;
           padding: 0 28px;
-          background: rgba(8,8,15,.92);
+          background: rgba(5,5,8,.92);
           backdrop-filter: blur(24px) saturate(160%);
           border-bottom: 1px solid rgba(255,255,255,.03);
         }
@@ -39,12 +39,12 @@ export default async function HomePage() {
         .nav-cta { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
           color: #fff; background: var(--red); border: none; border-radius: 7px; padding: 8px 16px;
           cursor: pointer; text-decoration: none; transition: all .15s; }
-        .nav-cta:hover { background: #c8001a; box-shadow: 0 4px 20px rgba(232,0,29,.4); }
+        .nav-cta:hover { background: #d40e2a; box-shadow: 0 4px 20px rgba(255,18,51,.4); }
 
         .page { padding-top: 56px; }
         .hero { position: relative; padding: 80px 28px 72px; overflow: hidden; }
         .hero::before { content: ''; position: absolute; top: -100px; right: -100px; width: 500px; height: 500px;
-          background: radial-gradient(circle, rgba(232,0,29,.07) 0%, transparent 70%); pointer-events: none; }
+          background: radial-gradient(circle, rgba(255,18,51,.07) 0%, transparent 70%); pointer-events: none; }
         .hero-eyebrow { display: flex; align-items: center; gap: 9px; font-size: 10px; font-weight: 700;
           letter-spacing: .2em; text-transform: uppercase; color: var(--red); margin-bottom: 16px;
           font-family: 'JetBrains Mono', monospace; }
@@ -52,7 +52,7 @@ export default async function HomePage() {
         .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 8vw, 88px);
           line-height: .9; letter-spacing: .02em; color: #fff; margin-bottom: 16px; }
         .hero h1 em { color: var(--red); font-style: normal; }
-        .hero-sub { font-size: 14px; line-height: 1.75; font-weight: 300; color: rgba(226,226,242,.6);
+        .hero-sub { font-size: 14px; line-height: 1.75; font-weight: 300; color: rgba(238,238,248,.6);
           max-width: 480px; margin-bottom: 8px; }
 
         .divider { height: 1px; background: var(--b2); margin: 0 28px; }
@@ -95,7 +95,7 @@ export default async function HomePage() {
           padding: 11px; border-radius: 8px; font-size: 13px; font-weight: 600; letter-spacing: .02em;
           border: none; cursor: pointer; transition: all .15s; text-decoration: none; }
         .dept-btn-open { background: var(--red); color: #fff; }
-        .dept-btn-open:hover { background: #c8001a; box-shadow: 0 4px 20px rgba(232,0,29,.35); }
+        .dept-btn-open:hover { background: #d40e2a; box-shadow: 0 4px 20px rgba(255,18,51,.35); }
         .dept-btn-closed { background: var(--s3); color: var(--mu); cursor: default; border: 1px solid var(--b); }
 
         .franchise-card { background: var(--s1); border: 1px solid var(--b); border-radius: 14px;
@@ -105,7 +105,7 @@ export default async function HomePage() {
         .franchise-inner { display: flex; align-items: flex-start; gap: 24px; padding: 32px; flex-wrap: wrap; }
         .franchise-icon { width: 64px; height: 64px; border-radius: 12px; flex-shrink: 0; font-size: 32px;
           display: flex; align-items: center; justify-content: center;
-          background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.25); }
+          background: rgba(245,196,0,.1); border: 1px solid rgba(245,196,0,.25); }
         .franchise-body { flex: 1; min-width: 260px; }
         .franchise-tag { font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
           color: var(--gold); margin-bottom: 8px; display: flex; align-items: center; gap: 7px;
@@ -120,7 +120,7 @@ export default async function HomePage() {
           color: #0a0a12; font-weight: 700; font-size: 13px; letter-spacing: .03em; padding: 13px 28px;
           border-radius: 8px; text-decoration: none; border: none; cursor: pointer; transition: all .15s;
           white-space: nowrap; }
-        .btn-gold:hover { background: #d4b257; box-shadow: 0 4px 20px rgba(201,168,76,.4); }
+        .btn-gold:hover { background: #ffd633; box-shadow: 0 4px 20px rgba(245,196,0,.4); }
         .btn-gold-disabled { background: var(--s3); color: var(--mu); cursor: default; border: 1px solid var(--b); }
         .franchise-closed-msg { font-size: 11px; color: var(--mu); text-align: right; max-width: 220px;
           font-family: 'JetBrains Mono', monospace; }
